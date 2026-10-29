@@ -5,7 +5,8 @@ description: >-
   paths. Use when turning workshop questions into Show me / Do it steps, or any
   click-through that should become InteractiveGuide
   packages. Follow pathfinder-author for block JSON and pathfinder-publish for
-  the upload. Do not hand-write content.json.
+  the upload. Run the static check, then the click sample, before publishing.
+  Do not hand-write content.json.
 ---
 
 # Workshop to Pathfinder
@@ -49,7 +50,7 @@ Optional questions stay `skippable`. Steps that create or save something go behi
 |---|---|---|
 | Open a known page | `navigate` on the interactive block before the guided steps | The path, such as `/a/grafana-k8s-app/navigation/workload` |
 | Click a card, tab, table link, or panel | `highlight` | CSS, `data-testid`, `data-cy`, or `a[href...]` |
-| Click a real button whose label you have seen | `button` | The visible label only, when it is not a CSS selector |
+| Click a real button whose label you have seen | `highlight` | `button:contains('Exact label')` |
 | Read a value or type into a field | `highlight` with the field or panel as the target | The learner types. Show me only points. |
 
 A bare word such as `Traces` or `Services` is a button-label lookup. On a page with no button of that name, Show me draws nothing and the guided modal waits on Skip. `exists-reftarget` plus `skippable: true` does not auto-advance.
@@ -83,10 +84,34 @@ If the root chunk does not contain the control (Assistant's composer did not), s
 - Resetting a learner's progress, or clicking Reset guide, while fixing a selector.
 - A customer name, stack host, or token inside the generated package.
 
+## QA
+
+`validate()` can pass while Show me draws nothing. Do not publish on that alone.
+
+Static check, from this skill:
+
+```
+python skills/workshop-to-pathfinder/scripts/check.py <packages-root>
+```
+
+It fails a bare reftarget (including a plain button label; write `button:contains('Save')`), an `on-page` path that is only a prefix of a deeper page in the same guide, a guided id that is also a section id, a question with no `Answer to compare` callout, and a guide that does not have exactly one quiz. `/d`, `/explore`, `/dashboard/new`, and `/dashboards` are allowed prefixes. Run `python skills/workshop-to-pathfinder/scripts/check.py --self-test` after changing the checker.
+
+Click sample, after the static check and a dry-run upload. A step passes only when Show me outlines the control the sentence names. Skip is a fail. A section that is already green is not a pass. Readback only proves the API kept the fields.
+
+Open the **path** id. Start each sample from that question's own navigate, not from the page the previous question left on screen.
+
+- The first step of every question. This is the wrong-page miss.
+- Every target that uses `:contains`, or a name that has a longer twin (`service` versus `service-europe`).
+- One step that leaves the app.
+- One live number, with the time picker written down. If the question says last 1 hour, the picker has to say last 1 hour or the answer callout is wrong.
+- The quiz, from the path id. A milestone id hides the bar.
+
+Log a miss as the guide id, the step id, the URL, the reftarget, and what outlined (nothing, the guide's own sentence, or the wrong twin). Fix `build.py` and regenerate. Do not Reset guide on a stack a learner has already started. Use a second user.
+
+"Do Section (1 step)" is expected. The clicks sit inside the guided block.
+
 ## Done
 
-`validate()` reports no errors. A check script confirms path count, one quiz per milestone, unique ids, and no bare guided `reftarget`. The README lists plugin ids, versions, fixture names, and which hooks were taken from a bundle versus still unconfirmed. The user has the dry-run plan before anything is written to a stack.
-
-Open `https://<stack>/a/grafana-pathfinder-app?doc=api:<path-id>` and walk one question that changes pages. A miss means fix `build.py` and regenerate.
+`validate()` reports no errors. `check.py` exits 0. The click sample above was walked, and every miss was fixed in `build.py`. The README lists plugin ids, versions, fixture names, and which hooks were taken from a bundle versus still unconfirmed. The user has seen the dry-run plan. Learners need `published`.
 
 Detail and the block shape: [reference.md](reference.md).
