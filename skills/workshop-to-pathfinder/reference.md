@@ -96,9 +96,13 @@ Kubernetes workload detail is `/a/grafana-k8s-app/navigation/namespace/{cluster}
 
 ## Check before you call it done
 
-Reject a guided step whose `reftarget` does not start with `[`, `#`, `.`, `a[`, `a:`, `button`, `input`, `textarea`, `th`, `h1`, `h3`, or `span`, unless you have recorded that the string is a real button label.
+```
+python skills/workshop-to-pathfinder/scripts/check.py <packages-root>
+```
 
-Also require: one quiz per milestone, unique block ids, every question has an answer callout, no `action` of `noop`, no `code-block`.
+The script rejects a guided `reftarget` that does not start with `[`, `#`, `.`, `a[`, `a:`, `button`, `input`, `textarea`, `th`, `h1`, `h3`, or `span`. A real button is `button:contains('Save')`, not the bare word `Save`. It also rejects an `on-page` path that is a strict prefix of another page in the same guide, a guided id reused as a section id, a guided question with no `Answer to compare` callout, and a guide without exactly one quiz.
+
+That script does not click. The click sample in `SKILL.md` is the pass rule: Show me outlines the named control. Skip is a fail.
 
 ## Upload
 

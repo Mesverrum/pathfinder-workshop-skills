@@ -22,7 +22,7 @@ Copy the three folders into the agent's skills directory. Keep the folder names.
 
 Cursor uses `.cursor/skills/` with the same three names.
 
-Point the agent at a workshop source and tell it to follow `workshop-to-pathfinder`. It should write a `build.py`, call `validate()`, and stop at a publish dry run until you confirm.
+Point the agent at a workshop source and tell it to follow `workshop-to-pathfinder`. It should write a `build.py`, call `validate()`, run `skills/workshop-to-pathfinder/scripts/check.py` on the packages, and stop at a publish dry run until you confirm. `validate()` passing is not enough. The click sample in that skill is the pass rule: Show me has to outline the control the sentence names. Skip is a fail.
 
 ## Publish
 
